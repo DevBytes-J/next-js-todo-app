@@ -16,7 +16,7 @@ export default function TodoListPage() {
   const { user, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
 
-  // Redirect if not authenticated
+
   useEffect(() => {
     if (!authLoading && !user) {
       router.push("/auth/login");
@@ -30,7 +30,7 @@ export default function TodoListPage() {
   } = useQuery<Todo[]>({
     queryKey: ["todos"],
     queryFn: fetchTodos,
-    enabled: !!user, // Only fetch when user is logged in
+    enabled: !!user, 
   });
 
   const updateMutation = useMutation({
@@ -91,7 +91,6 @@ export default function TodoListPage() {
     router.push("/auth/login");
   };
 
-  // Show loading while checking auth
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -102,8 +101,6 @@ export default function TodoListPage() {
       </div>
     );
   }
-
-  // Don't render if not authenticated
   if (!user) {
     return null;
   }
