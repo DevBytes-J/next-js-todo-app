@@ -1,0 +1,39 @@
+/* app/globals.css */
+
+/* 🚨 Use ONLY the v4 PostCSS import at the very top */
+@import "tailwindcss";
+
+:root {
+  --bg: #ffffff;
+  --text: #000000;
+}
+
+[data-theme="dark"] {
+  --bg: hsl(235, 21%, 11%);
+  --text: #ffffff;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Your custom layers and utility applications go below the import */
+@layer base {
+  * {
+    /* @apply is correct */
+    @apply box-border;
+  }
+  
+  body {
+    /* The utility class m-0 will now be recognized */
+    @apply m-0 p-0;
+  }
+}
+
+/* 🚨 Removed the following lines which conflict with @import "tailwindcss":
+@tailwind base;
+@tailwind components;
+@tailwind utilities; 
+*/
