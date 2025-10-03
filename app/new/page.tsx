@@ -1,16 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 import { useCreateTodo } from "@/hooks/useCreateTodo";
 import ThemeToggle from "@/components/ThemeToggle";
 
 export default function NewTodoPage() {
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [title, setTitle] = useState("");
   const [completed, setCompleted] = useState(false);
-  const router = useRouter();
 
   const { mutate: createTodo, isPending } = useCreateTodo();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/auth/login");
+    }
+  }, [user, authLoading, router]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,7 +26,6 @@ export default function NewTodoPage() {
     const newTodo = {
       title,
       completed,
-      userId: 1,
     };
 
     createTodo(newTodo, {
@@ -31,6 +38,23 @@ export default function NewTodoPage() {
       },
     });
   };
+
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-lg">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated
+  if (!user) {
+    return null;
+  }
 
   return (
     <main className="min-h-screen py-8 px-4">

@@ -2,7 +2,7 @@ export interface Todo {
   id: number;
   title: string;
   completed: boolean;
-  user_id: number;
+  user_id: string; // Changed from number to string (UUID)
   created_at?: string;
   updated_at?: string;
 }
@@ -10,7 +10,6 @@ export interface Todo {
 export interface CreateTodoInput {
   title: string;
   completed?: boolean;
-  user_id?: number;
 }
 
 export interface UpdateTodoInput {

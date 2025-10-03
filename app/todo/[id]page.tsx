@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 import { useTodo } from "@/hooks/useTodo";
 import { useUpdateTodo } from "@/hooks/useUpdateTodo";
 import { useDeleteTodo } from "@/hooks/useDeleteTodo";
@@ -10,6 +11,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 export default function TodoDetailPage({ params }: { params: { id: string } }) {
   const { id } = params;
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
 
   const { data: todo, isLoading, error } = useTodo(id);
   const [title, setTitle] = useState("");
@@ -17,6 +19,12 @@ export default function TodoDetailPage({ params }: { params: { id: string } }) {
 
   const { mutate: updateTodo, isPending: saving } = useUpdateTodo();
   const { mutate: deleteTodo } = useDeleteTodo();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/auth/login");
+    }
+  }, [user, authLoading, router]);
 
   useEffect(() => {
     if (todo) {
@@ -48,6 +56,23 @@ export default function TodoDetailPage({ params }: { params: { id: string } }) {
       onError: () => alert("Delete failed. Please try again."),
     });
   };
+
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-lg">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated
+  if (!user) {
+    return null;
+  }
 
   if (isLoading) {
     return (

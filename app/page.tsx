@@ -1,15 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchTodos, updateTodo, deleteTodo } from "@/lib/api";
 import EditTodoForm from "@/components/EditTodoForm";
 import ThemeToggle from "@/components/ThemeToggle";
 import Link from "next/link";
 import { Todo } from "@/types/todo";
+import { useAuth } from "@/hooks/useAuth";
+import { signOut } from "@/lib/auth";
 
 export default function TodoListPage() {
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/auth/login");
+    }
+  }, [user, authLoading, router]);
 
   const {
     data: todos = [],
@@ -18,6 +30,7 @@ export default function TodoListPage() {
   } = useQuery<Todo[]>({
     queryKey: ["todos"],
     queryFn: fetchTodos,
+    enabled: !!user, // Only fetch when user is logged in
   });
 
   const updateMutation = useMutation({
@@ -73,6 +86,28 @@ export default function TodoListPage() {
     }
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    router.push("/auth/login");
+  };
+
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-lg">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated
+  if (!user) {
+    return null;
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -89,7 +124,13 @@ export default function TodoListPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center text-red-500">
           <p className="text-xl font-bold mb-2">Failed to load todos</p>
-          <p>Please check your Supabase configuration</p>
+          <p className="mb-4">Please check your Supabase configuration</p>
+          <button
+            onClick={handleSignOut}
+            className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            Sign Out
+          </button>
         </div>
       </div>
     );
@@ -99,10 +140,17 @@ export default function TodoListPage() {
     <main className="min-h-screen py-8 px-4">
       <ThemeToggle />
 
+      <button
+        onClick={handleSignOut}
+        className="fixed top-4 left-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors z-40"
+      >
+        Sign Out
+      </button>
+
       <header className="text-center mb-8">
         <h1 className="text-4xl font-bold mb-2">📝 My Todo App</h1>
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-          Powered by Supabase Database 🚀
+          Welcome, {user.email} 👋
         </p>
         {advice && <h2 className="text-xl italic mb-4">{advice}</h2>}
         <button
@@ -268,7 +316,7 @@ export default function TodoListPage() {
           <span className="italic">Joanna Bassey</span> My Todo App
         </p>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-          Database: Supabase PostgreSQL
+          Database: Supabase PostgreSQL | User: {user.email}
         </p>
       </footer>
     </main>
